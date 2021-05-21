@@ -1,21 +1,24 @@
+from uuid import uuid1,UUID
 from pydantic import BaseModel
 from datetime import date, datetime
-from typing import Optional,List
+from typing import Optional, List
+
 
 class OrderLine(BaseModel):
-    orderid: str
+    orderid: UUID
     sku: str
     qty: int
 
     def __hash__(self):
         return hash(self.orderid)
 
+
 class Batch(BaseModel):
-    ref: str
+    ref: UUID
     sku: str
     eta: Optional[date]
     purchased_quantity: int
-    allocations=set()
+    allocations = set()
 
     def __eq__(self, other):
         if not isinstance(other, Batch):
@@ -35,7 +38,7 @@ class Batch(BaseModel):
         if other.eta is None:
             return True
         return self.eta < other.eta
-    
+
     def __hash__(self):
         return hash(self.ref)
 
@@ -58,7 +61,32 @@ class Batch(BaseModel):
     def can_allocate(self, line: OrderLine) -> bool:
         return self.sku == line.sku and self.available_quantity >= line.qty
 
+
 def allocate(line: OrderLine, batches: List[Batch]) -> str:
-        batch = next(b for b in sorted(batches) if b.can_allocate(line))
-        batch.allocate(line)
-        return batch.ref
+    batch = next(b for b in sorted(batches) if b.can_allocate(line))
+    batch.allocate(line)
+    return batch.ref
+
+
+def BatchFactory(
+    sku: str,
+    purchased_quantity: int
+) -> Batch:
+
+    return Batch(
+        ref = uuid1(),
+        sku = sku,
+        purchased_quantity = purchased_quantity,
+        eta = datetime.now(),
+        allocations = set()
+    )
+
+def OrderLineFactory(
+    sku: str,
+    qty: int
+    ) -> OrderLine:
+    return OrderLine(
+        orderid=uuid1(),
+        sku = sku,
+        qty = qty
+    )

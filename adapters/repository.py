@@ -2,9 +2,8 @@ from adapters.abstractRepository import AbstractRepository
 from domain import model
 
 class FakeRepository(AbstractRepository):
-
     def __init__(self):
-        self._batches = set()
+        pass
 
     def add(self, batch):
         self._batches.add(batch)
