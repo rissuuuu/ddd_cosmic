@@ -39,7 +39,7 @@ def allocate(request):
     batchrf=services.allocate(validated_data=abstract.AddOrderLine(
         sku=sku,
         qty=qty
-    ))
+    ),uow= unit_of_work.FakeUnitOfWork)
     return response.text(batchrf)
 
 

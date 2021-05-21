@@ -12,7 +12,7 @@ class FakeRepository(AbstractRepository):
         return next(b for b in self._batches if b.ref == reference)
 
     def list(self):
-        return list(self._batches)
+        return self._batches
 
 class SqlAlchemyRepository(AbstractRepository):
     def __init__(self, session):
