@@ -42,7 +42,7 @@ def is_valid_sku(sku, batches):
 
 def allocate(
     validated_data: abstract.AddOrderLine,
-    uow:unit_of_work.AbstractUnitOfWork):
+    uow:unit_of_work.FakeUnitOfWork):
 
     order_line=handlers.add_orderline(
         command.AddOrderLine(
