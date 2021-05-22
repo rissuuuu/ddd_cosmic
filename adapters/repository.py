@@ -1,3 +1,5 @@
+from typing import Set
+
 from adapters.abstractRepository import AbstractRepository, AbstractProductRepository
 from domain import model
 
@@ -31,6 +33,24 @@ class FakeProductRepository(AbstractProductRepository):
 
     def list(self):
         return self._products
+
+
+class TrackingRepository:
+    seen: Set[model.Product]
+
+    def __init__(self, repo: AbstractRepository):
+        self.seen = set()
+        self._repo = repo
+
+    def add(self, product: model.Product):
+        self._repo.add(product)
+        self.seen.add(product)
+
+    def get(self, sku) -> model.Product:
+        product = self._repo.get(sku)
+        if product:
+            self.seen.add(product)
+        return product
 
 
 class SqlAlchemyRepository(AbstractRepository):

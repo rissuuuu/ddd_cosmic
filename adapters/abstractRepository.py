@@ -21,8 +21,6 @@ class AbstractRepository(abc.ABC):
 class AbstractProductRepository(abc.ABC):
     _products = set()
     seen = set()
-    print("\n_______________________________________________seen________________________________________")
-    print(seen)
 
     def add(self, product):
         self._add(product)

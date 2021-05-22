@@ -37,6 +37,7 @@ class FakeUnitOfWork(AbstractUnitOfWork):
         self.committed = True
 
     def publish_events(self):
+        print("Publish event",self.products.seen)
         for product in self.products.seen:
             while product.events:
                 event = product.events.pop(0)
