@@ -1,7 +1,9 @@
-from uuid import uuid1,UUID
+from uuid import uuid1, UUID
 from pydantic import BaseModel
 from datetime import date, datetime
 from typing import Optional, List
+from exceptions.exceptions import OutofStock
+from domain import events
 
 
 class OrderLine(BaseModel):
@@ -69,24 +71,47 @@ def allocate(line: OrderLine, batches: List[Batch]) -> str:
 
 
 def BatchFactory(
-    sku: str,
-    purchased_quantity: int
+        sku: str,
+        purchased_quantity: int
 ) -> Batch:
-
     return Batch(
-        ref = uuid1(),
-        sku = sku,
-        purchased_quantity = purchased_quantity,
-        eta = datetime.now(),
-        allocations = set()
+        ref=uuid1(),
+        sku=sku,
+        purchased_quantity=purchased_quantity,
+        eta=datetime.now(),
+        allocations=set()
     )
+
 
 def OrderLineFactory(
-    sku: str,
-    qty: int
-    ) -> OrderLine:
+        sku: str,
+        qty: int
+) -> OrderLine:
     return OrderLine(
         orderid=uuid1(),
-        sku = sku,
-        qty = qty
+        sku=sku,
+        qty=qty
     )
+
+
+class Product(BaseModel):
+    sku: str
+    batches: List[Batch]
+    events: List[events.Event]
+    class Config:
+        arbitrary_types_allowed=True
+
+    def __hash__(self):
+        return hash(self.sku)
+
+    def allocate(self, line: OrderLine) -> str:
+        try:
+            batch = next(b for b in sorted(self.batches) if b.can_allocate(line))
+            batch.allocate(line)
+            return str(batch.ref)
+        except StopIteration:
+            self.events.append(events.OutOfStock(sku=line.sku))
+            # raise OutofStock(f"Out of stock for sku {line.sku}")
+            return "None"
+        finally:
+            print(events)

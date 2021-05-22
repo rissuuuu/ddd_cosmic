@@ -1,5 +1,6 @@
-from adapters.abstractRepository import AbstractRepository
+from adapters.abstractRepository import AbstractRepository, AbstractProductRepository
 from domain import model
+
 
 class FakeRepository(AbstractRepository):
     def __init__(self):
@@ -13,6 +14,24 @@ class FakeRepository(AbstractRepository):
 
     def list(self):
         return self._batches
+
+
+class FakeProductRepository(AbstractProductRepository):
+    def __init__(self):
+        pass
+
+    def _add(self, batch):
+        self._products.add(batch)
+
+    def _get(self, sku):
+        try:
+            return next(p for p in self._products if p.sku == sku)
+        except StopIteration:
+            return None
+
+    def list(self):
+        return self._products
+
 
 class SqlAlchemyRepository(AbstractRepository):
     def __init__(self, session):

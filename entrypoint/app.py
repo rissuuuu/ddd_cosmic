@@ -20,17 +20,17 @@ def add_batch(request):
         sku = sku_,
         purchased_quantity = pq_
     ),uow=unit_of_work.FakeUnitOfWork)
-    return response.json(json.loads(batch))
+    return response.text(batch)
 
 @app.route("/get_data", methods=["GET"])
 def get_all_batches(request):
     batches=services.get_batches(uow=unit_of_work.FakeUnitOfWork)
-    return response.json(batches)
+    return response.text("ok")
 
 @app.route("/get_single_data", methods=["GET"])
 def get_one_batches(request):
     batches=services.get_batches()
-    return response.json(batches)
+    return response.text("ok")
 
 @app.route("/allocate",methods=["POST"])
 def allocate(request):
