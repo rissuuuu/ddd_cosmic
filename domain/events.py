@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-
+from typing import Optional
+from datetime import date
 
 class Event:
     pass
@@ -11,3 +12,10 @@ class OutOfStock(Event):
 
     def __hash__(self):
         return hash(self.sku)
+
+@dataclass
+class BatchCreated(Event):
+    ref: str
+    sku: str
+    qty: int
+    eta: Optional[date] = None
