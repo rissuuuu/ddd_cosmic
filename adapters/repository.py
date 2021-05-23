@@ -31,6 +31,9 @@ class FakeProductRepository(AbstractProductRepository):
         except StopIteration:
             return None
 
+    def _get_by_batchref(self,batchref):
+        return next((p for p in self._products for b in p.batches if str(b.ref)== batchref),None,)
+
     def list(self):
         return self._products
 
@@ -65,3 +68,11 @@ class SqlAlchemyRepository(AbstractRepository):
 
     def list(self):
         return self.session.query(model.Batch).all()
+
+    def _get_by_batchref(self, batchref):
+        return (
+            self.session.query(model.Product)
+                .join(model.Batch)
+                # .filter(orm.batches.c.reference == batchref)
+                .first()
+        )

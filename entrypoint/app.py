@@ -46,9 +46,15 @@ def allocate(request):
     event = events.AllocationRequired(sku=sku, qty=qty, orderid=orderid)
     results = messagebus.handle(event, unit_of_work.FakeUnitOfWork)
     batchref = results.pop(0)
-
     return response.text(batchref)
 
+@app.route("/change_batch_qty", methods=["POST"])
+def change_batch_qty(request):
+    ref = request.form.get("ref")
+    qty = request.form.get("qty")
+    event = events.BatchQuantityChanged(ref=ref, qty=qty)
+    results=messagebus.handle(event,unit_of_work.FakeUnitOfWork)
+    return  response.text(results.pop(0))
 
 if __name__ == "__main__":
     app.run(auto_reload=True, debug=True, workers=4)

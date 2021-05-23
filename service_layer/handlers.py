@@ -71,3 +71,13 @@ def send_out_of_stock_notification(
         uow: unit_of_work.FakeUnitOfWork,
 ):
     sendmail("rissuuuu@gmail.com","Out of stock")
+
+def change_batch_quantity(
+        event: events.BatchQuantityChanged,
+        uow: unit_of_work.FakeUnitOfWork,
+):
+    with uow() as uw:
+        product=uw.products.get_by_batchref(batchref=event.ref)
+        product.change_batch_quantity(ref=event.ref,qty=event.qty)
+        uw.commit()
+    return "ok"

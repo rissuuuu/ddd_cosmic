@@ -32,6 +32,12 @@ class AbstractProductRepository(abc.ABC):
             self.seen.add(product)
         return product
 
+    def get_by_batchref(self,batchref) -> model.Product:
+        product= self._get_by_batchref(batchref)
+        if product:
+            self.seen.add(product)
+        return product
+
     @abc.abstractmethod
     def _add(self, product:model.Product) :
         raise NotImplementedError
@@ -40,6 +46,9 @@ class AbstractProductRepository(abc.ABC):
     def _get(self, sku) -> model.Product:
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def _get_by_batchref(self,batchref) -> model.Product:
+        raise NotImplementedError
 
     @property
     def products(self):

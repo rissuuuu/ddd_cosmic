@@ -52,13 +52,16 @@ class Batch(BaseModel):
         if line in self.allocations:
             self.allocations.remove(line)
 
+    def deallocate_one(self) -> OrderLine:
+        return self.allocations.pop()
+
     @property
     def allocated_quantity(self) -> int:
-        return sum(line.qty for line in self.allocations)
+        return int(sum(line.qty for line in self.allocations))
 
     @property
     def available_quantity(self) -> int:
-        return self.purchased_quantity - self.allocated_quantity
+        return int(self.purchased_quantity) - int(self.allocated_quantity)
 
     def can_allocate(self, line: OrderLine) -> bool:
         return self.sku == line.sku and self.available_quantity >= line.qty
@@ -67,7 +70,7 @@ class Batch(BaseModel):
 def allocate(line: OrderLine, batches: List[Batch]) -> str:
     batch = next(b for b in sorted(batches) if b.can_allocate(line))
     batch.allocate(line)
-    return batch.ref
+    return str(batch.ref)
 
 
 def BatchFactory(
@@ -115,3 +118,12 @@ class Product(BaseModel):
             return "None"
         finally:
             print(events)
+
+    def change_batch_quantity(self,ref: str, qty: int):
+        batch = next(b for b in self.batches if str(b.ref)== ref)
+        batch.purchased_quantity = qty
+        while batch.available_quantity < 0:
+            line = batch.deallocate_one()
+            self.events.append(events.AllocationRequired(str(line.orderid),line.sku,line.qty))
+        return "ok"
+
