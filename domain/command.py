@@ -1,7 +1,13 @@
-from pydantic import BaseModel
-from domain import model
-from typing import Optional
+from dataclasses import dataclass
 from datetime import date
+from typing import Optional
+
+from pydantic import BaseModel
+
+
+class Command:
+    pass
+
 
 class AddBatch(BaseModel):
     sku: str
@@ -10,4 +16,24 @@ class AddBatch(BaseModel):
 
 class AddOrderLine(BaseModel):
     sku: str
+    qty: int
+
+
+@dataclass
+class Allocate(Command):
+    orderid: str
+    sku: str
+    qty: int
+
+
+@dataclass
+class CreateBatch(Command):
+    ref: str
+    sku: str
+    qty: int
+    eta: Optional[date] = None
+
+@dataclass
+class ChangeBatchQuantity(Command):
+    ref: str
     qty: int
