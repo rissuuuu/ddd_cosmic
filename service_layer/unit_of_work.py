@@ -1,6 +1,5 @@
 from adapters import repository
 from adapters.repository import FakeRepository, FakeProductRepository
-from service_layer import messagebus
 from service_layer.abstract_unit_of_work import AbstractUnitOfWork
 
 
@@ -36,12 +35,12 @@ class FakeUnitOfWork(AbstractUnitOfWork):
     def _commit(self):
         self.committed = True
 
-    def publish_events(self):
-        print("Publish event",self.products.seen)
+    def collect_new_events(self):
+        self.products=FakeProductRepository()
+        print("Seen",self.products.seen)
         for product in self.products.seen:
             while product.events:
-                event = product.events.pop(0)
-                messagebus.handle(event)
+                yield product.events.pop(0)
 
     def rollback(self):
         pass

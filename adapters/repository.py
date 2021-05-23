@@ -20,7 +20,7 @@ class FakeRepository(AbstractRepository):
 
 class FakeProductRepository(AbstractProductRepository):
     def __init__(self):
-        pass
+        super().__init__()
 
     def _add(self, batch):
         self._products.add(batch)

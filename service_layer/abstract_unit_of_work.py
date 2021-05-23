@@ -9,10 +9,10 @@ class AbstractUnitOfWork(abc.ABC):
 
     def commit(self):  # (3)
         self._commit()
-        self.publish_events()
+        self.collect_new_events()
 
     @abc.abstractmethod
-    def publish_events(self):
+    def collect_new_events(self):
         raise NotImplementedError
 
     @abc.abstractmethod
