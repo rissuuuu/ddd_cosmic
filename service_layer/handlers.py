@@ -1,22 +1,23 @@
-from domain import command, model
+from domain import commands, model
 from domain import events
 from service_layer import abstract, handler
 from service_layer import unit_of_work
+from domain import  commands
 
 
 def add_batch(
         uow: unit_of_work.FakeUnitOfWork,
-        event: events.BatchCreated
+        command: commands.CreateBatch
         ):
     with uow() as uw:
-        product = uw.products.get(sku=event.sku)
+        product = uw.products.get(sku=command.sku)
         if product is None:
-            product = model.Product(sku=event.sku, batches=[],
+            product = model.Product(sku=command.sku, batches=[],
                                     events=[])
             uw.products.add(product)
-        batch = handler.add_batch(command.AddBatch(
-            purchased_quantity=event.qty,
-            sku=event.sku
+        batch = handler.add_batch(commands.AddBatch(
+            purchased_quantity=command.qty,
+            sku=command.sku
         )
         )
         product.batches.append(batch)
@@ -42,17 +43,16 @@ def is_valid_sku(sku, batches):
 
 
 def allocate(
-        event: events.AllocationRequired,
+        command: commands.Allocate,
         uow: unit_of_work.FakeUnitOfWork):
     order_line = handler.add_orderline(
-        command.AddOrderLine(
-            orderid = event.orderid,
-            sku=event.sku,
-            qty=event.qty
+        commands.AddOrderLine(
+            sku=command.sku,
+            qty=command.qty
         )
     )
     with uow() as uw:
-        product = uw.products.get(sku=event.sku)
+        product = uw.products.get(sku=command.sku)
         if product is None:
             return f"Cannot allocate  invalid sku {order_line.sku}"
         batchref = product.allocate(order_line)
@@ -73,11 +73,11 @@ def send_out_of_stock_notification(
     sendmail("rissuuuu@gmail.com","Out of stock")
 
 def change_batch_quantity(
-        event: events.BatchQuantityChanged,
+        command: commands.ChangeBatchQuantity,
         uow: unit_of_work.FakeUnitOfWork,
 ):
     with uow() as uw:
-        product=uw.products.get_by_batchref(batchref=event.ref)
-        product.change_batch_quantity(ref=event.ref,qty=event.qty)
+        product=uw.products.get_by_batchref(batchref=command.ref)
+        product.change_batch_quantity(ref=command.ref,qty=command.qty)
         uw.commit()
     return "ok"

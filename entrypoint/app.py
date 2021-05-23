@@ -1,9 +1,8 @@
 from sanic import Sanic
 from sanic import response
 
-from domain import events
-from service_layer import handlers, unit_of_work
-from service_layer import messagebus
+from domain import events,commands
+from service_layer import handlers, unit_of_work, messagebus
 
 app = Sanic(__name__)
 
@@ -18,14 +17,8 @@ def add_batch(request):
     ref = request.form.get("ref")
     sku_ = request.form.get("sku")
     pq_ = request.form.get("purchased_quantity")
-    event = events.BatchCreated(ref=ref, sku=sku_, qty=pq_)
-    results = messagebus.handle(event=event,uow=unit_of_work.FakeUnitOfWork)
-    # batch=handlers.add_batch(validated_data=abstract.AddBatch(
-    #     sku = sku_,
-    #     purchased_quantity = pq_
-    # ),uow=unit_of_work.FakeUnitOfWork,
-    # event=events.BatchCreated
-    # )
+    command = commands.CreateBatch(ref=ref, sku=sku_, qty=pq_)
+    results = messagebus.handle(message=command,uow=unit_of_work.FakeUnitOfWork)
     return response.text("ok")
 
 @app.route("/get_data", methods=["GET"])
@@ -43,8 +36,8 @@ def allocate(request):
     sku = request.form.get("sku")
     qty = request.form.get("qty")
     orderid = request.form.get("orderid")
-    event = events.AllocationRequired(sku=sku, qty=qty, orderid=orderid)
-    results = messagebus.handle(event, unit_of_work.FakeUnitOfWork)
+    command = commands.Allocate(sku=sku, qty=qty)
+    results = messagebus.handle(message=command, uow=unit_of_work.FakeUnitOfWork)
     batchref = results.pop(0)
     return response.text(batchref)
 
@@ -52,8 +45,8 @@ def allocate(request):
 def change_batch_qty(request):
     ref = request.form.get("ref")
     qty = request.form.get("qty")
-    event = events.BatchQuantityChanged(ref=ref, qty=qty)
-    results=messagebus.handle(event,unit_of_work.FakeUnitOfWork)
+    command = commands.ChangeBatchQuantity(ref=ref, qty=qty)
+    results=messagebus.handle(command,unit_of_work.FakeUnitOfWork)
     return  response.text(results.pop(0))
 
 if __name__ == "__main__":

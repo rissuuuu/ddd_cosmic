@@ -21,7 +21,6 @@ class AddOrderLine(BaseModel):
 
 @dataclass
 class Allocate(Command):
-    orderid: str
     sku: str
     qty: int
 
