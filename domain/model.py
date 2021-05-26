@@ -111,6 +111,14 @@ class Product(BaseModel):
         try:
             batch = next(b for b in sorted(self.batches) if b.can_allocate(line))
             batch.allocate(line)
+            allocated_event=(events.Allocated(
+                orderid = str(line.orderid),
+                sku = line.sku,
+                qty = line.qty,
+                batchref =  str(batch.ref)
+            ))
+            print("\n___________________________Event allocated____________________________\n",allocated_event)
+            self.events.append(allocated_event)
             return str(batch.ref)
         except StopIteration:
             self.events.append(events.OutOfStock(sku=line.sku))

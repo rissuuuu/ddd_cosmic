@@ -3,7 +3,8 @@ from typing import Union, List
 
 from domain import commands
 from domain import events
-from service_layer import unit_of_work, handlers
+from service_layer import unit_of_work
+from service_layer import handlers
 
 logger = logging.getLogger('werkzeug')
 
@@ -59,8 +60,11 @@ def handle_command(
 
 
 EVENT_HANDLERS = {
+    events.Allocated: [handlers.publish_allocated_event],
+    events.BatchQuantityChanged: [handlers.publish_batch_quantity_changed],
     events.OutOfStock: [handlers.send_out_of_stock_notification],
-
+    events.BatchCreated: [handlers.publish_create_batch],
+    events.AllocationRequired: [handlers.publish_allocation_required],
 }
 
 COMMAND_HANDLERS = {

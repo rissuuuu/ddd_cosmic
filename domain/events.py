@@ -19,17 +19,34 @@ class BatchCreated(Event):
     sku: str
     qty: int
     eta: Optional[date] = None
+    def json(self):
+        return {
+            "ref":self.ref,
+            "sku":self.sku,
+            "qty":self.qty
+        }
 
 @dataclass
 class AllocationRequired(Event):
     orderid: str
     sku: str
     qty: int
+    def json(self):
+        return {
+            "sku":self.sku,
+            "qty":self.qty
+        }
 
 @dataclass
 class BatchQuantityChanged(Event):
     ref: str
     qty: int
+    def json(self):
+        return {
+            "ref":self.ref,
+            "qty":self.qty
+        }
+
 
 @dataclass
 class Allocated(Event):
@@ -37,3 +54,11 @@ class Allocated(Event):
     sku: str
     qty: int
     batchref: str
+
+    def json(self):
+        return {
+            "orderid":self.orderid,
+            "sku":self.sku,
+            "qty":self.qty,
+            "batchref":self.batchref
+        }
