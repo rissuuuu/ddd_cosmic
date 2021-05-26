@@ -5,10 +5,11 @@ from adapters import repository
 class AbstractUnitOfWork(abc.ABC):
 
     def __exit__(self, *args):  # (2)
-        self.rollback()  # (4)
+        # self.rollback()  # (4)
+        pass
 
-    def commit(self):  # (3)
-        self._commit()
+    async def commit(self):  # (3)
+        await self._commit()
         self.collect_new_events()
 
     @abc.abstractmethod
@@ -16,9 +17,9 @@ class AbstractUnitOfWork(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def rollback(self):  # (4)
+    async def rollback(self):  # (4)
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _commit(self):  # (3)
+    async def _commit(self):  # (3)
         raise NotImplementedError

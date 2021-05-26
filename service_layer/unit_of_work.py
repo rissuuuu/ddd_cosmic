@@ -16,10 +16,10 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         super().__exit__(*args)
         self.session.close()  # (3)
 
-    def commit(self):  # (4)
+    async def commit(self):  # (4)
         self.session.commit()
 
-    def rollback(self):  # (4)
+    async def rollback(self):  # (4)
         self.session.rollback()
 
 
@@ -32,7 +32,7 @@ class FakeUnitOfWork(AbstractUnitOfWork):
         self.products = FakeProductRepository()
         return self
 
-    def _commit(self):
+    async def _commit(self):
         self.committed = True
 
     def collect_new_events(self):
@@ -42,5 +42,6 @@ class FakeUnitOfWork(AbstractUnitOfWork):
             while product.events:
                 yield product.events.pop(0)
 
-    def rollback(self):
+
+    async def rollback(self):
         pass

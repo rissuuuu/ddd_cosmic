@@ -2,7 +2,6 @@ from uuid import uuid1, UUID
 from pydantic import BaseModel
 from datetime import date, datetime
 from typing import Optional, List
-from exceptions.exceptions import OutofStock
 from domain import events
 
 
@@ -44,36 +43,31 @@ class Batch(BaseModel):
     def __hash__(self):
         return hash(self.ref)
 
-    def allocate(self, line: OrderLine):
-        if self.can_allocate(line):
+    async def allocate(self, line: OrderLine):
+        if await self.can_allocate(line):
             self.allocations.add(line)
 
-    def deallocate(self, line: OrderLine):
+    async def deallocate(self, line: OrderLine):
         if line in self.allocations:
             self.allocations.remove(line)
 
-    def deallocate_one(self) -> OrderLine:
+    async def deallocate_one(self) -> OrderLine:
         return self.allocations.pop()
 
     @property
-    def allocated_quantity(self) -> int:
+    async def allocated_quantity(self) -> int:
         return int(sum(line.qty for line in self.allocations))
 
     @property
-    def available_quantity(self) -> int:
-        return int(self.purchased_quantity) - int(self.allocated_quantity)
+    async def available_quantity(self) -> int:
+        qty= await self.allocated_quantity
+        return int(self.purchased_quantity) - int(qty)
 
-    def can_allocate(self, line: OrderLine) -> bool:
-        return self.sku == line.sku and self.available_quantity >= line.qty
-
-
-def allocate(line: OrderLine, batches: List[Batch]) -> str:
-    batch = next(b for b in sorted(batches) if b.can_allocate(line))
-    batch.allocate(line)
-    return str(batch.ref)
+    async def can_allocate(self, line: OrderLine) -> bool:
+        return self.sku == line.sku and await self.available_quantity >= line.qty
 
 
-def BatchFactory(
+async def BatchFactory(
         sku: str,
         purchased_quantity: int
 ) -> Batch:
@@ -86,7 +80,7 @@ def BatchFactory(
     )
 
 
-def OrderLineFactory(
+async def OrderLineFactory(
         sku: str,
         qty: int
 ) -> OrderLine:
@@ -107,10 +101,14 @@ class Product(BaseModel):
     def __hash__(self):
         return hash(self.sku)
 
-    def allocate(self, line: OrderLine) -> str:
+    async def allocate(self, line: OrderLine) -> str:
         try:
             batch = next(b for b in sorted(self.batches) if b.can_allocate(line))
-            batch.allocate(line)
+            print("\n______________________________________before available quantity____________________________________\n")
+            print(await batch.available_quantity)
+            await batch.allocate(line)
+            print("\n______________________________________after available quantity____________________________________\n")
+            print(await batch.available_quantity)
             allocated_event=(events.Allocated(
                 orderid = str(line.orderid),
                 sku = line.sku,
@@ -127,11 +125,12 @@ class Product(BaseModel):
         finally:
             print(events)
 
-    def change_batch_quantity(self,ref: str, qty: int):
+    async def change_batch_quantity(self,ref: str, qty: int):
         batch = next(b for b in self.batches if str(b.ref)== ref)
         batch.purchased_quantity = qty
-        while batch.available_quantity < 0:
-            line = batch.deallocate_one()
+        while await batch.available_quantity < 0:
+            line = await batch.deallocate_one()
             self.events.append(events.AllocationRequired(str(line.orderid),line.sku,line.qty))
+        self.events.append(events.BatchQuantityChanged(ref = ref, qty = qty ))
         return "ok"
 
