@@ -1,0 +1,10 @@
+alembic==1.6.4
+asyncio==3.4.3
+Flask==2.0.1
+future==0.18.2
+Jinja2==3.0.1
+redis==3.5.3
+requests==2.22.0
+sanic==21.3.4
+SQLAlchemy==1.4.15
+pydantic==1.8.2

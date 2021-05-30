@@ -1,72 +1,53 @@
 import logging
-from typing import Union, List
+from typing import Union, List, Dict, Type, Callable
 
 from domain import commands
 from domain import events
 from service_layer import unit_of_work
-from service_layer import handlers
 
 logger = logging.getLogger('werkzeug')
 
 Message = Union[commands.Command, events.Event]
 
 
-async def handle(
-        message: Message,
-        uow: unit_of_work.FakeUnitOfWork):
-    results = []
-    queue = [message]
-    while queue:
-        message = queue.pop(0)
-        if isinstance(message, events.Event):
-            await handle_event(message, queue, uow)
-        elif isinstance(message, commands.Command):
-            cmd_result = await handle_command(message, queue, uow)
-            results.append(cmd_result)
-        else:
-            raise Exception(f"{message} was not an event or command")
-    return results
+class MessageBus:
+    def __init__(
+        self,
+        uow: unit_of_work.AbstractUnitOfWork,
+        event_handlers: Dict[Type[events.Event], List[Callable]],
+        command_handlers: Dict[Type[commands.Command], Callable],
+    ):
+        self.uow = uow
+        self.event_handlers = event_handlers
+        self.command_handlers = command_handlers
 
+    async def handle(self, message: Message):
+        self.queue = [message]
+        while self.queue:
+            message = self.queue.pop(0)
+            if isinstance(message, events.Event):
+                await self.handle_event(message)
+            elif isinstance(message, commands.Command):
+                await self.handle_command(message)
+            else:
+                raise Exception(f"{message} was not an Event or Command")
 
-async def handle_event(
-        event: events.  Event,
-        queue: List[Message],
-        uow: unit_of_work.FakeUnitOfWork
-):
-    for handler in EVENT_HANDLERS[type(event)]:
+    async def handle_event(self, event: events.Event):
+        for handler in self.event_handlers[type(event)]:
+            try:
+                logger.debug("handling event %s with handler %s", event, handler)
+                await handler(event)
+                self.queue.extend(self.uow.collect_new_events())
+            except Exception:
+                logger.exception("Exception handling event %s", event)
+                continue
+
+    async def handle_command(self, command: commands.Command):
+        logger.debug("handling command %s", command)
         try:
-            logger.debug("handling event %s with handler %s", (event, handler))
-            await handler(event, uow=uow)
-            queue.extend((uow().collect_new_events()))
+            handler = self.command_handlers[type(command)]
+            await handler(command)
+            self.queue.extend(self.uow.collect_new_events())
         except Exception:
-            logger.exception("Exception handling event %s", event)
-            continue
-
-
-async def handle_command(
-        command: commands.Command,
-        queue: List[Message],
-        uow: unit_of_work.FakeUnitOfWork,
-):
-    logger.debug("handling command %s", command)
-    try:
-        handler = COMMAND_HANDLERS[type(command)]
-        result = await handler(command= command, uow=uow)
-        queue.extend(uow().collect_new_events())
-        return result
-    except:
-        logger.exception("Exception handling command %s", command)
-        raise
-
-
-EVENT_HANDLERS = {
-    events.Allocated: [handlers.publish_allocated_event],
-    events.BatchQuantityChanged: [handlers.publish_batch_quantity_changed],
-    events.OutOfStock: [handlers.send_out_of_stock_notification],
-}
-
-COMMAND_HANDLERS = {
-    commands.Allocate: handlers.allocate,
-    commands.CreateBatch: handlers.add_batch,
-    commands.ChangeBatchQuantity: handlers.change_batch_quantity,
-}
+            logger.exception("Exception handling command %s", command)
+            raise

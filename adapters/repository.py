@@ -31,29 +31,11 @@ class FakeProductRepository(AbstractProductRepository):
         except StopIteration:
             return None
 
-    async def _get_by_batchref(self,batchref):
-        return next((p for p in self._products for b in p.batches if str(b.ref)== batchref),None,)
+    async def _get_by_batchref(self, batchref):
+        return next((p for p in self._products for b in p.batches if str(b.ref) == batchref), None,)
 
     async def list(self):
         return self._products
-
-
-class TrackingRepository:
-    seen: Set[model.Product]
-
-    def __init__(self, repo: AbstractRepository):
-        self.seen = set()
-        self._repo = repo
-
-    async def add(self, product: model.Product):
-        self._repo.add(product)
-        self.seen.add(product)
-
-    async def get(self, sku) -> model.Product:
-        product = self._repo.get(sku)
-        if product:
-            self.seen.add(product)
-        return product
 
 
 class SqlAlchemyRepository(AbstractRepository):
@@ -73,6 +55,6 @@ class SqlAlchemyRepository(AbstractRepository):
         return (
             self.session.query(model.Product)
                 .join(model.Batch)
-                # .filter(orm.batches.c.reference == batchref)
+            # .filter(orm.batches.c.reference == batchref)
                 .first()
         )
