@@ -1,10 +1,11 @@
 from typing import Callable
-from adapters import redis_eventpublisher
+
 from domain import commands
 from domain import events
 from domain import model
 from service_layer import handler
 from service_layer import unit_of_work
+
 
 ##handler only returns domain model
 

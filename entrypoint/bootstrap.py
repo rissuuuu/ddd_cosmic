@@ -1,13 +1,12 @@
 import inspect
 from typing import Callable
+
 from databases import Database
-from service_layer import abstract_unit_of_work, unit_of_work
+
+from adapters import redis_eventpublisher
 from service_layer import handlers
 from service_layer import messagebus
-from adapters import redis_eventpublisher
-from ddd_cosmic import config
-
-
+from service_layer import unit_of_work
 
 
 def bootstrap(

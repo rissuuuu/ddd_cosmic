@@ -1,17 +1,9 @@
 from sanic import Sanic
-from databases import Database
 
 from entrypoint import bootstrap
-from ddd_cosmic import config
+from utils import utils
 
-def init_database() -> Database:
-    return Database(
-        config.PostgresConfig().get_postgres_url()
-    )
-
-db = init_database()
-
-# onstart database start and close on on_close
+db = utils.init_database()
 
 def create_app(config_name="default"):
     app = Sanic(__name__)
