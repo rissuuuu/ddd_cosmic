@@ -4,30 +4,32 @@ from service_layer.abstract_unit_of_work import AbstractUnitOfWork
 
 
 class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
-    def __init__(self, session_factory=None):
-        self.session_factory = session_factory  # (1)
+    def __init__(self, db=None):
+        self.db_factory = db  # (1)
 
     def __enter__(self):
-        self.session = self.session_factory()  # type: Session  #(2)
-        self.batches = repository.SqlAlchemyRepository(self.session)  # (2)
+        self.db = self.db_factory()  # type: db  #(2)
+        self.batches = repository.SqlAlchemyRepository(self.db)  # (2)
         return super().__enter__()
 
     def __exit__(self, *args):
         super().__exit__(*args)
-        self.session.close()  # (3)
+        self.db.close()  # (3)
 
     async def commit(self):  # (4)
-        self.session.commit()
+        self.db.commit()
 
     async def rollback(self):  # (4)
-        self.session.rollback()
+        self.db.rollback()
 
 
 class FakeUnitOfWork(AbstractUnitOfWork):
-    def __init__(self):
+    def __init__(self,db):
+        self.db = db
         self.committed = False
 
     def __enter__(self):
+        print("\n_____________________Injected db___________________________\n",self.db,"\n")
         self.batches = FakeRepository._batches
         self.products = FakeProductRepository()
         return self

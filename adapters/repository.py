@@ -39,21 +39,21 @@ class FakeProductRepository(AbstractProductRepository):
 
 
 class SqlAlchemyRepository(AbstractRepository):
-    def __init__(self, session):
-        self.session = session
+    def __init__(self, db):
+        self.db = db
 
     async def add(self, batch):
-        self.session.add(batch)
+        self.db.add(batch)
 
     async def get(self, reference):
-        return self.session.query(model.Batch).filter_by(reference=reference).one()
+        return self.db.query(model.Batch).filter_by(reference=reference).one()
 
     async def list(self):
-        return self.session.query(model.Batch).all()
+        return self.db.query(model.Batch).all()
 
     async def _get_by_batchref(self, batchref):
         return (
-            self.session.query(model.Product)
+            self.db.query(model.Product)
                 .join(model.Batch)
             # .filter(orm.batches.c.reference == batchref)
                 .first()
