@@ -8,14 +8,13 @@ from adapters import redis_eventpublisher
 from ddd_cosmic import config
 
 
-def init_database():
-    pass
 
 
 def bootstrap(
-        uow: abstract_unit_of_work.AbstractUnitOfWork = unit_of_work.FakeUnitOfWork(db = init_database()),
+        db : Database,
         publish: Callable = redis_eventpublisher.publish,
 ) -> messagebus.MessageBus:
+    uow = unit_of_work.FakeUnitOfWork(db=db)
     dependencies = {"uow": uow, "publish": publish}
     injected_event_handlers = {
         event_type: [
