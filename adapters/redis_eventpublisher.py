@@ -3,7 +3,6 @@ import json
 import redis
 
 from domain import events
-from entrypoint import redis_eventconsumer
 
 r = redis.Redis(host="127.0.0.1", port=6379)
 
