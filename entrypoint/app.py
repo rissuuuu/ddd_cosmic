@@ -15,7 +15,16 @@ tracemalloc.start()
 
 r = redis.Redis(host='127.0.0.1', port=6379)
 
+@app.main_process_start
+async def start_db(app,loop):
+    print("DB connected")
+    await app.ctx.db.connect()
 
+@app.main_process_stop
+async def stop_db(app,loop):
+    print("DB Disconnected")
+    # await app.ctx.db.disconnect()
+    
 @app.get("/")
 async def hello_world(request):
     return response.text("hello How are you??")
