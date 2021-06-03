@@ -30,7 +30,7 @@ class FakeUnitOfWork(AbstractUnitOfWork):
 
     def __enter__(self):
         print("\n_____________________Injected db___________________________\n",self.db,"\n")
-        self.batches = FakeRepository._batches
+        self.batches = FakeRepository(self.db)
         self.products = FakeProductRepository()
         return self
 

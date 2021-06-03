@@ -26,7 +26,7 @@ async def add_batch(
             sku=command.sku
         )
         )
-        uow.batches.add(batch)
+        await uow.batches.add(batch)
         product.batches.append(batch)
         await uow.commit()
         print("\n_____________________________________________________________Create Batch_________________________________________________________________")

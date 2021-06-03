@@ -9,7 +9,7 @@ from service_layer import messagebus
 from service_layer import unit_of_work
 
 
-def bootstrap(
+async def bootstrap(
         db : Database,
         publish: Callable = redis_eventpublisher.publish,
 ) -> messagebus.MessageBus:
@@ -23,7 +23,7 @@ def bootstrap(
         for event_type, event_handlers in handlers.EVENT_HANDLERS.items()
     }
     injected_command_handlers = {
-        command_type: inject_dependencies(handler, dependencies)
+         command_type: inject_dependencies(handler, dependencies)
         for command_type, handler in handlers.COMMAND_HANDLERS.items()
     }
 
