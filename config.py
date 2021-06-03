@@ -5,7 +5,7 @@ class Config:
     DEBUG = os.environ.get("DEBUG", True)
     ENV = os.environ.get("ENV", "development")
     DATABASE_HOST = os.environ.get("DATABASE_HOST", "localhost")
-    DATABASE_NAME = os.environ.get("DATABASE_NAME", "postgres")
+    DATABASE_NAME = os.environ.get("DATABASE_NAME", "floorsheet")
     DATABASE_USER = os.environ.get("DATABASE_USER", "admin")
     DATABASE_PASSWORD = os.environ.get("DATABASE_PASSWORD", "localhost")
     DATABASE_PORT = os.environ.get("DATABASE_PORT", 5432)

@@ -1,5 +1,5 @@
 import tracemalloc
-
+import asyncio
 import redis
 from sanic import response
 
@@ -8,7 +8,7 @@ from entrypoint import create_app
 from service_layer import unit_of_work, handlers
 from utils import utils
 
-app = create_app()
+app = asyncio.run(create_app())
 bus = utils.get_bootstrap(app)
 
 tracemalloc.start()
@@ -19,6 +19,7 @@ r = redis.Redis(host='127.0.0.1', port=6379)
 async def start_db(app,loop):
     print("DB connected")
     await app.ctx.db.connect()
+    print(app.ctx.db.is_connected)
 
 @app.main_process_stop
 async def stop_db(app,loop):
