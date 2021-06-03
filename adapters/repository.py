@@ -1,14 +1,25 @@
 from typing import Set
 
 from adapters.abstractRepository import AbstractRepository, AbstractProductRepository
+from adapters import orm
 from domain import model
 
 
 class FakeRepository(AbstractRepository):
-    def __init__(self):
+    def __init__(self,db):
+        self.db = db
         pass
 
     async def add(self, batch):
+        await self.db.execute(
+            query=orm.batches.insert().returning(orm.batches.c.ref),
+            values={
+                "ref" : str(batch.ref),
+                "sku" : batch.sku,
+                "purchased_qty" : batch.purchased_quantity
+
+            },
+        )
         self._batches.add(batch)
 
     async def get(self, reference):
